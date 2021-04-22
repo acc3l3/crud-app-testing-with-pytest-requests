@@ -1,3 +1,4 @@
+
 from datetime import date
 from enum import Enum
 from app.connectdb import connect_db
@@ -54,32 +55,42 @@ class Task:
             self.task_id = TaskUtils.create_new_task()
 
         task_dict = TaskUtils.get_task_as_dict(self.task_id)
-        self.content = task_dict['content']
+        self._content = task_dict['content']
         self.date_of_creation = task_dict['date_of_creation']
         self.last_change_status_date = task_dict['last_change_status_date']
-        self.current_status = task_dict['current_status']
+        self._current_status = task_dict['current_status']
         self.previous_status = task_dict['previous_status']
 
     @connect_db
     def delete(self, cursor) -> None:
         cursor.execute(f"DELETE FROM {Config.tasks_table_name} WHERE id = {self.task_id};")
 
-    @connect_db
-    def set_content(self, content, cursor):
-        self.content = content
-        cursor.execute(f"UPDATE {Config.tasks_table_name} SET content = '{self.content}' WHERE id = '{self.task_id}';")
+    @property
+    def content(self):
+        return self._content
 
+    @content.setter
     @connect_db
-    def set_status(self, new_status, cursor):
+    def content(self, content, cursor):
+        self._content = content
+        cursor.execute(f"UPDATE {Config.tasks_table_name} SET content = '{self._content}' WHERE id = '{self.task_id}';")
+
+    @property
+    def current_status(self):
+        return self._current_status
+
+    @current_status.setter
+    @connect_db
+    def current_status(self, new_status, cursor):
         """
         Заменяет текущий статус на новый, если они отличаются. Текущий становится становится previous_status.
         """
-        if self.current_status != new_status:
-            self.previous_status = self.current_status
-            self.current_status = new_status
+        if self._current_status != new_status:
+            self.previous_status = self._current_status
+            self._current_status = new_status
             cursor.execute(f"UPDATE {Config.tasks_table_name} "
                            f"SET "
-                           f"current_status = '{self.current_status}', "
+                           f"current_status = '{self._current_status}', "
                            f"previous_status = '{self.previous_status}', "
                            f"last_change_status_date = '{date.today()}' "
                            f"WHERE id = '{self.task_id}';")

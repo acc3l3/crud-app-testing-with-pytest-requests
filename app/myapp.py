@@ -26,7 +26,7 @@ def create_task():
         return Response(status=400, response="The request body should contain only 1 parameter - content")
     else:
         task = Task()
-        task.set_content(content)
+        task.content = content
         return Response(status=201, response=str(task.task_id))
 
 
@@ -70,9 +70,9 @@ def update_task():
         return Response(status=404, response=f'Task with id {task_id} NOT FOUND')
     # Обновим атрибуты задачи
     if req_body.get('content') is not None:
-        task.set_content(req_body.get('content'))
+        task.content = req_body.get('content')
     if req_body.get('status') is not None:
-        task.set_status(req_body.get('status'), )
+        task.current_status = req_body.get('status')
     return Response(status=200)
 
 

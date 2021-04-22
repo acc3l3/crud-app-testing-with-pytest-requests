@@ -109,33 +109,33 @@ class TestTask:
         assert len(get_all_tasks_as_dict_from_test_db()) == 0
 
     @staticmethod
-    def test_set_content(truncate_tasks_table, create_task):
+    def test_content_setter(truncate_tasks_table, create_task):
         # Arrange
-        new_task_content = generate_random_text()
+        new_content = generate_random_text()
         # Act & Assert
         task = Task(1)
-        task.set_content(new_task_content)
+        task.content = new_content
         # Проверим что атрибут у экземляра класса поменялся
-        assert task.content == new_task_content
+        assert task.content == new_content
         # Заново достанем задачу из бд и убедимся что и в бд поменялся контент у задачи
-        task = Task(1)
-        assert task.content == new_task_content
+        task_from_db = get_all_tasks_as_dict_from_test_db().get(1)
+        assert task_from_db.get('content') == new_content
 
     @staticmethod
-    def test_set_status(truncate_tasks_table, create_task_with_attributes):
+    def test_current_status_setter(truncate_tasks_table, create_task_with_attributes):
         # Arrange
         new_status = generate_random_text()
         task = Task(1)
         # Act
-        task.set_status(new_status)
+        task.current_status = new_status
         # Assert
         # Проверим что атрибуты у экземляра класса поменялись
         assert task.current_status == new_status
         assert task.previous_status == create_task_with_attributes['current_status']
         # Заново достанем задачу из бд и убедимся что и в бд поменялся статус у задачи
-        task = Task(1)
-        assert task.current_status == new_status
-        assert task.previous_status == create_task_with_attributes['current_status']
+        task_from_db = get_all_tasks_as_dict_from_test_db().get(1)
+        assert task_from_db.get('current_status') == new_status
+        assert task_from_db.get('previous_status') == create_task_with_attributes['current_status']
 
 
 if __name__ == '__main__':
