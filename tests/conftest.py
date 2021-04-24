@@ -1,25 +1,43 @@
 import random
 import pytest
-from contextlib import closing
-from psycopg2 import connect
+from contextlib import contextmanager
+from psycopg2 import pool
 from config import Config
 from string import ascii_letters
 from random import choice, randint
 from datetime import date
 from collections import OrderedDict
-# Todo: Скорее всего, хранить вспомогательные функции в файлике conftest не лучшая затея, нужно будет изучить вопрос
+import atexit
 
 
-def connect_db_for_tests(func) -> object:
-    """Подключаетс к дб c помощью декоратора, декорируемой функции обязательно нужно принять cursor"""
+connection_pool = pool.SimpleConnectionPool(minconn=1, maxconn=20,
+                                            dbname=Config.dbname, host=Config.host,
+                                            user=Config.user, password=Config.password, port=5432)
 
+
+def close_connection_pool():
+    connection_pool.closeall()
+
+
+atexit.register(close_connection_pool)
+
+
+@contextmanager
+def get_connection():
+    connection = connection_pool.getconn()
+    try:
+        yield connection
+    finally:
+        connection_pool.putconn(connection)
+
+
+def connect_db_for_tests(func):
+    """Подключаетс к базе данных c помощью декоратора, декорируемой функции обязательно нужно принять cursor"""
     def wrapper(*args, **kwargs):
-        with closing(connect(dbname=Config.dbname, user=Config.user, password=Config.password,
-                             host=Config.host)) as conn:
-            with conn.cursor() as cursor:
-                conn.autocommit = True
-                return func(*args, **kwargs, cursor=cursor)
-
+        with get_connection() as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+        return func(*args, **kwargs, cursor=cursor)
     return wrapper
 
 
