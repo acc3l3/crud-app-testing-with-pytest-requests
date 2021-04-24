@@ -2,6 +2,8 @@ from flask import Flask, request, Response, redirect
 from app.utils import TaskUtils
 from app.task import Task, UpdateTaskRequestBody, CreateTaskRequestBody
 from pydantic import ValidationError
+from connectdb import close_connection_pool
+import atexit
 
 app = Flask(__name__)
 
@@ -59,22 +61,24 @@ def update_task():
     и атрибут(ы) со значением, которое необоходимо обновить"""
     # Провалидируем тело запроса, если что-то не так, то вернем ошибку 400
     try:
-        req_body = dict(UpdateTaskRequestBody(**request.form))
+        request_body = dict(UpdateTaskRequestBody(**request.form))
     except ValidationError as e:
         return Response(status=400, response=e.json())
     # Провалидируем id задачи, если такой задачи нет, то вернем ошибку 404
-    task_id = req_body.get('task_id')
+    task_id = request_body.get('task_id')
     try:
         task = Task(task_id)
     except ValueError:
         return Response(status=404, response=f'Task with id {task_id} NOT FOUND')
     # Обновим атрибуты задачи
-    if req_body.get('content') is not None:
-        task.content = req_body.get('content')
-    if req_body.get('status') is not None:
-        task.current_status = req_body.get('status')
+    if request_body.get('content') is not None:
+        task.content = request_body.get('content')
+    if request_body.get('status') is not None:
+        task.current_status = request_body.get('status')
     return Response(status=200)
 
 
 if __name__ == '__main__':
+    # Закроем пул соединений после завершения работы программы
+    atexit.register(close_connection_pool)
     app.run()
