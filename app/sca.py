@@ -1,5 +1,7 @@
+# Без этих 2-ух строчек не видно config.py
+import sys
+sys.path.append('../')
 from flask import Flask, request, Response, redirect
-from app.utils import TaskUtils
 from app.task import Task, UpdateTaskRequestBody, CreateTaskRequestBody
 from pydantic import ValidationError
 from connectdb import close_connection_pool
@@ -16,7 +18,7 @@ def root():
 @app.route('/api/v1/tasks', methods=['GET'])
 def get_all_tasks():
     """Вернет все задачи из таблицы, если задач нет, то вернет пустой json"""
-    return TaskUtils.get_all_tasks_as_dict()
+    return Task.get_all_tasks_as_dict()
 
 
 @app.route('/api/v1/tasks', methods=['POST'])
@@ -34,13 +36,13 @@ def create_task():
 
 @app.route('/api/v1/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
-    """Возвращает атрибуты конкретной задачи с id = task_id"""
+    """Возвращает все атрибуты конкретной задачи с id = task_id"""
     try:
-        task = TaskUtils.get_task_as_dict(task_id)
+        task = Task(task_id)
     except TypeError:
         return Response(status=404, response=f"Task with id {task_id} NOT FOUND")
     else:
-        return Response(status=200, response=task)
+        return Response(status=200, response=task.dict())
 
 
 @app.route('/api/v1/tasks/<int:task_id>', methods=['DELETE'])

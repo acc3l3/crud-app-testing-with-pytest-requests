@@ -88,11 +88,13 @@ class TestTask:
 
     @staticmethod
     def test_get_existing_task(truncate_tasks_table, create_task_with_attributes):
-        """При вызове Task(task_id) должен быть создан экземпляр класса Task с атрибутами задачи"""
+        """
+        При вызове Task(task_id=id) должен быть создан экземпляр класса Task с атрибутами задачи, которые взяты из бд
+        """
         # Arrange
         task_attributes = create_task_with_attributes
         # Act
-        task = Task(1)
+        task = Task(task_id=1)
         # Assert
         assert task.content == task_attributes['content']
         assert task.date_of_creation == task_attributes['date_of_creation']
@@ -103,7 +105,7 @@ class TestTask:
     @staticmethod
     def test_delete_task(truncate_tasks_table, create_task):
         # Act
-        task = Task(1)
+        task = Task(task_id=1)
         task.delete()
         # Assert
         assert len(get_all_tasks_as_dict_from_test_db()) == 0
@@ -113,7 +115,7 @@ class TestTask:
         # Arrange
         new_content = generate_random_text()
         # Act & Assert
-        task = Task(1)
+        task = Task(task_id=1)
         task.content = new_content
         # Проверим что атрибут у экземляра класса поменялся
         assert task.content == new_content
@@ -125,7 +127,7 @@ class TestTask:
     def test_current_status_setter(truncate_tasks_table, create_task_with_attributes):
         # Arrange
         new_status = generate_random_text()
-        task = Task(1)
+        task = Task(task_id=1)
         # Act
         task.current_status = new_status
         # Assert

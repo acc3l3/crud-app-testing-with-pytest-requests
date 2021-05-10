@@ -2,9 +2,12 @@ from contextlib import contextmanager
 from psycopg2 import pool
 from config import Config
 
-connection_pool = pool.SimpleConnectionPool(minconn=1, maxconn=20,
-                                            dbname=Config.dbname, host=Config.host,
-                                            user=Config.user, password=Config.password)
+connection_pool = pool.SimpleConnectionPool(minconn=1,
+                                            maxconn=20,
+                                            dbname=Config.dbname,
+                                            host=Config.host,
+                                            user=Config.user,
+                                            password=Config.password)
 
 
 def close_connection_pool():
@@ -13,9 +16,11 @@ def close_connection_pool():
 
 @contextmanager
 def get_connection():
+    # Контекстный менеджер для получения подключения из пула подключений
     connection = connection_pool.getconn()
     try:
         yield connection
+    # После выполнения запроса вернем подключение в пул подключений
     finally:
         connection_pool.putconn(connection)
 
